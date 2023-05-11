@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .page-link {
+    @apply hover:text-sky-800 focus:text-sky-800 transition underline;
+  }
+
+  .text-input {
+    @apply block;
+  }
+
+  .text-input > span,
+  .text-input > input {
+    @apply block;
+  }
+
+  .text-input > input,
+  .text-input > textarea {
+    @apply w-full mt-2;
+  }
+
+  .text-input > span:last-of-type {
+    @apply text-red-700 mt-2;
+  }
+
+  .btn-submit {
+    @apply mt-4 block font-bold text-white rounded-sm px-4 py-2 text-center bg-teal-700 enabled:hover:text-teal-700 enabled:focus:text-teal-700 border border-teal-700 enabled:hover:bg-white enabled:focus:bg-white transition;
+  }
+
+  .btn-submit:disabled {
+    @apply opacity-75 cursor-not-allowed;
+  }
+
+  .info-list {
+    @apply bg-white p-4 shadow-md;
+  }
+
+  .info-list > li {
+    @apply mt-4 flex items-start gap-8 text-sm sm:text-base;
+  }
+
+  .info-list > li > span:first-of-type {
+    @apply font-bold text-gray-900 inline-block min-w-[75px];
+  }
+
+  .heading-1 {
+    @apply font-bold text-gray-500 text-xl;
+  }
+
+  .data-table {
+    @apply text-left shadow-md w-full min-w-[700px];
+  }
+
+  .data-table th,
+  .data-table td {
+    @apply p-4 text-sm;
+  }
+
+  .data-table th {
+    @apply text-gray-900 bg-teal-400;
+  }
+
+  .data-table td {
+    @apply border-b border-b-teal-700;
+  }
+}

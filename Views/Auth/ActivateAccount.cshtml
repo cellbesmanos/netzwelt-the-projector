@@ -1,0 +1,29 @@
+@model ActivateAccountModel
+@{
+  ViewData["Title"] = "Activate Account";
+}
+
+<div class="mx-auto max-w-4xl mt-16">
+  <div>
+    <h1 class="heading-1 mt-8">Activate account.</h1>
+    <p class="mt-2">To get started, let's change your password first.</p>
+  </div>
+
+  <form asp-controller="Auth" asp-action="ActivatingAccount" asp-route-id="@Model.Id" method="post" data-post-form class="border shadow-md p-8 mt-8">
+    <label asp-for="Payload.Password" class="text-input">
+      <span>Password:</span>
+      <input asp-for="Payload.Password" type="password">
+
+      <span asp-validation-for="Payload.Password"></span>
+    </label>
+
+    <label asp-for="Payload.PasswordConfirmation" class="text-input mt-4">
+      <span>Password Confirmation:</span>
+      <input asp-for="Payload.PasswordConfirmation" type="password">
+
+      <span asp-validation-for="Payload.PasswordConfirmation"></span>
+    </label>
+
+    <button type="submit" class="btn-submit w-full mt-8">Change Password</button>
+  </form>
+</div>

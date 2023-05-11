@@ -1,0 +1,79 @@
+@using System.Globalization;
+@using System.Security.Claims;
+@model ViewOneProjectModel;
+@{
+  ViewData["Title"] = "View Project";
+
+  bool isOwner = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value).Equals(Model.Owner.Id);
+  var members = Model.Project.Members.Where((m) => !m.Id.Equals(Model.Owner.Id));
+}
+
+<div class="mx-auto max-w-4xl mt-16">
+  <div>
+    <a asp-controller="Projects" asp-action="ViewProjects" class="page-link">Back</a>
+  </div>
+
+  <div class="flex gap-8 items-start flex-wrap justify-between mt-8 bg-white p-4 shadow-md">
+    <ul class="grow">
+      <li class="mt-4 flex items-start gap-8 text-sm sm:text-base">
+        <span class="font-bold text-gray-900 inline-block min-w-[100px]">Name:</span>
+        <span class="inline-block max-w-[clamp(150px,_40vw,_470px)] break-words">@Model.Project.Name</span>
+      </li>
+      <li class="mt-4 flex items-start gap-8 text-sm sm:text-base">
+        <span class="font-bold text-gray-900 inline-block min-w-[100px]">Code:</span>@Model.Project.Code
+      </li>
+      <li class="mt-4 flex items-start gap-8 text-sm sm:text-base">
+        @{
+          var culture = new CultureInfo(User.FindFirst("Locale").Value);
+        }
+
+        <span class="font-bold text-gray-900 inline-block min-w-[100px]">Budget:</span>@($"${Model.Project.Budget.ToString("n2", culture)}") 
+      </li>
+      @if(isOwner) {
+        <li class="mt-4 flex items-start gap-8 text-sm sm:text-base"><span class="font-bold text-gray-900 inline-block min-w-[100px]">Created By:</span>
+          <span>
+            <span class="inline-block max-w-[clamp(150px,_40vw,_470px)] break-words">@Model.Owner.Fullname</span>
+            <span class="inline-block ml-1 font-bold px-2 py-1 text-xs rounded bg-teal-400">You</span>
+          </span>
+        </li>
+      } else {
+        <li class="mt-4 flex items-start gap-8 text-sm sm:text-base">
+          <span class="font-bold text-gray-900 inline-block min-w-[100px]">Created By:</span>
+          <span class="inline-block max-w-[clamp(150px,_40vw,_470px)] break-words">@Model.Owner.Fullname</span>
+        </li>
+      }
+      <li class="mt-4 flex items-start gap-8 text-sm sm:text-base">
+        <span class="font-bold text-gray-900 inline-block min-w-[100px]">Remarks:</span>
+        <span class="inline-block max-w-[clamp(150px,_40vw,_470px)] break-words">@Model.Project.Remarks</span>
+      </li>
+    </ul>
+
+    @if(isOwner)
+    {
+      <div class="flex items-center gap-4">
+        <a asp-controller="Projects" asp-action="EditProject" asp-route-id="@Model.Project.Id" class="page-link">Edit Project</a>
+
+        <button data-pop-up-show="delete-project" class="px-4 py-2 inline-block rounded-sm text-teal-700 hover:bg-teal-700 focus:bg-teal-700 hover:text-white focus:text-white border border-teal-700 bg-white transition">Delete Project</button>
+
+        @await Html.PartialAsync("_DeleteProjectPopup", new DeleteProjectPopupModel { Id = Model.Project.Id })
+      </div>
+    }
+  </div>
+
+  <div 
+  id="project-members-container" 
+  data-url='@Url.Action("GetAllProjectMembers", "Projects", new {Id = @Model.Project.Id})' >
+    @await Html.PartialAsync("_ViewProjectMembers",
+    new ProjectMembersModel 
+    { 
+      ProjectId = Model.Project.Id, 
+      CurrentUserIsOwner = isOwner,  
+      ProjectNonMembers = Model.ProjectNonMembers, 
+      ProjectMembers = members, 
+    })
+  </div>
+</div>
+
+@section Scripts {
+  <script src="~/js/viewOneProject.js"></script>
+}

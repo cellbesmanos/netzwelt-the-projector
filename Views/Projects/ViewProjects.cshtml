@@ -1,0 +1,29 @@
+@using System.Security.Claims;
+@model ViewProjectsModel;
+@{
+  ViewData["Title"] = "Projects";
+  
+  var isManager = User.FindFirst(ClaimTypes.Role).Value == "Manager";
+}
+
+<div class="mx-auto max-w-4xl mt-16">
+  <div class="flex items-center justify-between">
+    <h1 class="heading-1">Projects</h1>
+
+  @if(isManager) {
+    <div class="flex items-center gap-4">
+      <a asp-controller="Projects" asp-action="CreateProject" class="page-link">Create New Project</a>
+      <a asp-controller="Auth" asp-action="CreateUser" class="page-link">Create User</a>
+    </div>
+  }
+  </div>
+
+  <div id="projects-list-container" data-url='@Url.Action("ViewProjectsList", "Projects")' class="mt-8">
+    @await Html.PartialAsync("_ViewProjectsList", new ViewProjectsListModel 
+    { Projects =  Model.Projects, QueryParams = Model.QueryParams })
+  </div>
+</div>
+
+@section Scripts {
+  <script src="~/js/viewProjectsList.js"></script>
+}

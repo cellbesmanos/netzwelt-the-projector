@@ -1,0 +1,24 @@
+@using System.Security.Claims;
+@model ViewUsersModel;
+@{
+  ViewData["Title"] = "All Users";
+  var currentUserID = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+}
+
+<div class="mx-auto max-w-4xl mt-16">
+  <div class="flex items-center justify-between">
+    <h1 class="heading-1">Users</h1>
+  
+    <a asp-controller="Auth" asp-action="CreateUser" class="page-link">Create User</a>
+  </div>
+
+  <div id="users-list-container" data-url='@Url.Action("ViewUsersList", "Users")' class="mt-8">
+    @await Html.PartialAsync("_ViewUsersList", 
+    new ViewUsersListModel 
+    { UserId = currentUserID, Users =  Model.Users, QueryParams = Model.QueryParams })
+  </div>
+</div>
+
+@section Scripts {
+  <script src="~/js/viewUsersList.js"></script>
+}

@@ -1,0 +1,75 @@
+@using System.Security.Claims;
+@model ViewProjectMembersListModel;
+@{
+  var sort = Model.QueryParams.Sort;
+}
+
+<form class="flex flex-wrap sm:items-center md:justify-between gap-2 sm:gap-4 mt-4" data-members-list-form>
+  <div class="flex items-end md:items-center gap-2">
+    <label for="search">
+      <span class="max-sm:hidden">Search:</span>
+      <input data-members-list-search-field id="search" name="search" type="text" placeholder="Enter name" maxlength="64" value="@(Model.QueryParams.Search)">
+    </label>
+
+    <button data-members-list-search type="button" class="px-4 py-2 inline-block rounded-sm text-teal-700 hover:bg-teal-700 focus:bg-teal-700 hover:text-white focus:text-white border border-teal-700 bg-white transition">Search</button>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <label for="sort">
+        <span class="text-sm">A-Z</span>
+        <input id="sort" name="sort" data-members-list-sort type="radio"  value="asc" checked="@(!string.IsNullOrEmpty(sort) && sort.Equals("asc"))" class="cursor-pointer">
+    </label>
+
+    <label for="sort">
+        <span class="text-sm">Z-A</span>
+        <input id="sort" name="sort" data-members-list-sort type="radio"  value="dsc" checked="@(!string.IsNullOrEmpty(sort) && sort.Equals("dsc"))" class="cursor-pointer">
+    </label> 
+  </div>
+
+  <label for="pageNumber" class="cursor-pointer">
+      <span>Page: </span>
+      <select id="pageNumber" name="pageNumber" data-members-list-pagination class="cursor-pointer">
+          @for(int i = 1; i <= @Model.QueryParams.TotalPages; i++) {
+              if(i == @Model.QueryParams.PageNumber) {
+                  <option value="@i" asp-for="PageNumber" selected>@i</option>
+              } else {
+                  <option value="@i" asp-for="PageNumber">@i</option>
+              }
+          }
+      </select>
+  </label>
+</form>
+
+
+<ul id="project-members-list" data-url='@Url.Action("RemoveProjectMember", "Projects")' class="mt-2">
+  @if(Model.ProjectMembers.Count() == 0) {
+    <div class="text-center mt-2">
+      <p>No one is here yet. Add some members to get started.</p>
+    </div>
+  } else {
+    @foreach (var user in Model.ProjectMembers)
+    {
+      @if(Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value).Equals(user.Id)) {
+        <li data-project-member class="mt-2 p-8 rounded shadow flex items-center justify-between">
+          <div>@user.Fullname
+            <span class="inline-block ml-4 font-bold px-2 py-1 text-xs rounded bg-teal-400">You</span>
+          </div> 
+
+          @if(Model.IsOwner)
+          { 
+            <button data-project-id="@Model.ProjectId" data-user-id="@user.Id" type="button" class="px-4 py-2 inline-block rounded-sm text-teal-700 enabled:hover:bg-teal-700 enabled:focus:bg-teal-700 enabled:hover:text-white enabled:focus:text-white border border-teal-700 bg-white transition disabled:cursor-not-allowed disabled:opacity-75">Remove</button> 
+          }
+        </li>
+      } else {
+        <li data-project-member class="mt-2 p-8 rounded shadow flex items-center justify-between">
+          <div>@user.Fullname</div> 
+          
+          @if(Model.IsOwner)
+          { 
+            <button data-project-id="@Model.ProjectId" data-user-id="@user.Id" type="button" class="px-4 py-2 inline-block rounded-sm text-teal-700 enabled:hover:bg-teal-700 enabled:focus:bg-teal-700 enabled:hover:text-white enabled:focus:text-white border border-teal-700 bg-white transition disabled:cursor-not-allowed disabled:opacity-75">Remove</button> 
+          }
+        </li>
+      } 
+    }
+  }
+</ul>

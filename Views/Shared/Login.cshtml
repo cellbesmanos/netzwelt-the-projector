@@ -1,0 +1,33 @@
+@model LoginModel;
+@{
+  ViewData["Title"] = "Log In";
+}
+
+<div class="mx-auto mt-16 max-w-lg">
+  <h1 class="heading-1">Welcome back.</h1>
+
+  <form asp-controller="Auth" asp-action="LoginUser" method="post" data-post-form class="border shadow-md p-8 mt-8">
+    <div class="px-2 py-4 text-center rounded-sm bg-red-400 mb-4" asp-validation-summary="ModelOnly"></div>
+    @if(!string.IsNullOrEmpty(Model?.Message)) { <div class="mb-4 px-2 py-4 text-center rounded-sm bg-lime-300">@Model.Message</div> }
+
+    <label asp-for="Payload.Email" class="text-input">
+      <span>Email:</span>
+      <input asp-for="Payload.Email" type="email" placeholder="your@email.com">
+
+      <span asp-validation-for="Payload.Email"></span>
+    </label>
+
+    <label asp-for="Payload.Password" class="text-input mt-4">
+      <span>Password:</span>
+      <input asp-for="Payload.Password" type="password">
+
+      <span asp-validation-for="Payload.Password"></span>
+    </label>
+
+    <button type="submit" class="btn-submit w-full mt-8">Log in</button>
+
+    <div class="mt-8 flex items-center justify-end">
+      <a class="page-link block text-sm" asp-controller="Auth" asp-action="RequestResetPassword">Forgot password?</a>
+    </div>
+  </form>
+</div>

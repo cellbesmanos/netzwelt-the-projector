@@ -1,0 +1,23 @@
+@model ViewProfileModel;
+@{
+  ViewData["Title"] = "My Profile";
+}
+
+<div class="mx-auto max-w-4xl mt-16">
+  <div>
+    <a asp-controller="Users" asp-action="Home" class="page-link">Back</a>
+  </div>
+
+  <div class="flex items-center justify-between mt-8">
+    <h1 class="heading-1">My Profile</h1>
+  
+    <a asp-controller="Users" asp-action="EditProfile" asp-route-id="@Model.User.Id" class="page-link">Edit Profile</a>
+  </div>
+
+  <ul class="mt-8 info-list">
+    <li><span>Fullname:</span><span class="inline-block max-w-[min(530px_,_63%)] break-words">@Model.User.Fullname</span></li>
+    <li><span>Email:</span><span class="inline-block max-w-[min(530px_,_63%)] break-words">@Model.User.Email</span></li>
+    <li><span>Role:</span><span>@Model.User.Role</span></li>
+    <li><span>Locale:</span><span>@Model.User.Locale</span></li>
+  </ul>
+</div>

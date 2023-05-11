@@ -1,0 +1,68 @@
+@model CreateUserModel;
+@{
+  ViewData["Title"] = "Create User";
+  var locales = new List<string>() { "en-US", "de-DE", "en-GB", "fr-FR" };
+}
+
+<div class="mx-auto max-w-4xl mt-16">
+  <div>
+    <a asp-controller="Users" asp-action="Home" class="page-link">Back</a>
+  </div>
+
+  <h1 class="heading-1 mt-8">Create New User</h1>
+
+  <form asp-controller="Auth" asp-action="Signup" method="post" data-post-form class="border shadow-md p-8 mt-8">
+    @if(!string.IsNullOrEmpty(Model?.Message)) { <div class="mb-4 px-2 py-4 text-center rounded-sm bg-lime-300">@Model.Message</div> }
+
+
+    <label asp-for="Payload.Email" class="text-input">
+      <span>Email:</span>
+      <input asp-for="Payload.Email" type="email" autocomplete="off">
+
+      <span asp-validation-for="Payload.Email"></span>
+    </label>
+
+    <label asp-for="Payload.Firstname" class="text-input mt-2">
+      <span>Firstname:</span>
+      <input asp-for="Payload.Firstname" type="text" autocomplete="off">
+
+      <span asp-validation-for="Payload.Firstname"></span>
+    </label>
+
+    <label asp-for="Payload.Lastname" class="text-input mt-2">
+      <span>Lastname:</span>
+      <input asp-for="Payload.Lastname" type="text" autocomplete="off">
+
+      <span asp-validation-for="Payload.Lastname"></span>
+    </label>
+
+    <label asp-for="Payload.Role" class="mt-2 block">
+      <span class="block">Role:</span>
+      <select class="block w-full mt-2" asp-for="Payload.Role">
+        <option value="">Please select a role</option>
+        @foreach (var role in Model.Roles)
+        {
+          <option value="@role.Id">@role.Name</option>
+        }
+      </select>
+
+      <span asp-validation-for="Payload.Role" class="text-red-700 mt-2 block"></span>
+    </label>
+
+      <label asp-for="Payload.Locale" class="mt-2 block">
+      <span class="block">User's initial locale:</span>
+      <select class="block w-full mt-2" asp-for="Payload.Locale">
+        <option value="">Please select a locale</option>
+        @foreach (var locale in locales)
+        {
+          <option value="@locale">@locale</option>
+        }
+      </select>
+
+      <span asp-validation-for="Payload.Locale" class="text-red-700 mt-2 block"></span>
+    </label>
+
+    <button type="submit" class="btn-submit w-full mt-8">Create</button>
+  </form>
+</div>
+

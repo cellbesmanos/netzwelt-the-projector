@@ -1,0 +1,28 @@
+@using System.Security.Claims;
+
+@{
+     var isAdmin = User.Identity.IsAuthenticated ? User.FindFirst(ClaimTypes.Role).Value == "Administrator" : false;
+}
+
+<nav class="flex items-center mx-auto max-w-4xl gap-2 sm:gap-0 justify-between">
+     <p class="font-bold text-gray-500 sm:text-lg">The Projector</p>       
+
+@if(User != null && User.Identity.IsAuthenticated)
+{
+     <div class="flex items-center gap-4">
+          @if(isAdmin) {
+               <a class="block hover:underline focus:underline transition" asp-controller="Users" asp-action="ViewUsers">Users</a>
+          } else {
+               <a class="block hover:underline focus:underline transition" asp-controller="Projects" asp-action="ViewProjects">Projects</a>
+          }
+          <a class="block hover:underline focus:underline transition" asp-controller="Users" asp-action="ViewProfile">My Profile</a>
+          <form asp-controller="Auth" asp-action="Logout" method="post" data-post-form><button class="page-link" type="submit">Log out</button></form>
+     </div>
+}
+else
+{
+     <div>
+          <a class="page-link" asp-controller="Auth" asp-action="Login">Log in</a>
+     </div>
+}
+</nav>

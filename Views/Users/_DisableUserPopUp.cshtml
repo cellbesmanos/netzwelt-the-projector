@@ -1,0 +1,14 @@
+@model DisableUserPopupModel;
+
+<div
+ data-pop-up="disable-user" style="display: none;" class="fixed top-0 right-0 bottom-0 left-0 bg-gray-800/80 flex items-center justify-center">
+    <div class="border bg-white shadow text-center p-16 w-[512px]">
+      <p class="font-bold text-gray-500 text-lg">Disable this user?</p>
+      <p>This action is cannot be undone.</p>
+
+      <form asp-controller="Auth" asp-action="DisableUser" asp-route-id="@Model.Id" method="post" class="flex items-center justify-center gap-4 mt-4">
+          <button data-pop-up-hide="disable-user" type="button" class="underline">Cancel</button>
+          <button type="submit" class="btn-submit mt-0">Proceed</button>
+      </form>
+    </div>
+</div>

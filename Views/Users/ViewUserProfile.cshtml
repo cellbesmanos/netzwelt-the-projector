@@ -1,0 +1,26 @@
+@model ViewUserProfileModel;
+@{
+  ViewData["Title"] = "View User Profile";
+}
+
+<div class="mx-auto max-w-4xl mt-16">
+  <div>
+    <a asp-controller="Users" asp-action="Home" class="page-link">Back</a>
+  </div>
+
+  <div class="flex items-center justify-between mt-8">
+    <h1 class="heading-1">User's Profile</h1>
+
+    <button data-pop-up-show="disable-user" class="px-4 py-2 inline-block rounded-sm text-teal-700 hover:bg-teal-700 focus:bg-teal-700 hover:text-white focus:text-white border border-teal-700 bg-white transition">Disable User</button>
+
+    @await Html.PartialAsync("_DisableUserPopUp", new DisableUserPopupModel { Id = Model.User.Id })
+  </div>
+
+  <ul class="mt-8 info-list">
+    <li><span>Fullname:</span><span class="inline-block max-w-[min(530px_,_63%)] break-words">@Model.User.Fullname</span></li>
+    <li><span>Email:</span><span class="inline-block max-w-[min(530px_,_63%)] break-words">@Model.User.Email</span></li>
+    <li><span>Role:</span>@Model.User.Role</li>
+    <li><span>Locale:</span>@Model.User.Locale</li>
+  </ul>
+</div>
+

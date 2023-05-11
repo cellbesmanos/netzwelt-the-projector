@@ -1,0 +1,67 @@
+@model EditProfileModel;
+@{
+  ViewData["Title"] = "Edit Profile";
+
+  var requestResetPasswordParams = new Dictionary<string, string>();
+  requestResetPasswordParams.Add("email", @Model.Payload.Email);
+
+  var locales = new List<string>() { "en-US", "de-DE", "en-GB", "fr-FR" };
+}
+
+<div class="mx-auto max-w-4xl mt-16">
+  <div>
+    <a asp-controller="Users" asp-action="ViewProfile" class="page-link">Back</a>
+  </div>
+
+  <h1 class="heading-1 mt-8">Edit Profile</h1>
+ 
+  <form asp-controller="Users" asp-action="EditingProfile" asp-route-id="@Model.Id" method="post" data-post-form class="border shadow-md p-8 mt-8">
+    <label asp-for="Payload.Email" class="text-input">
+      <span>Email:</span>
+      <input asp-for="Payload.Email" type="email" autocomplete="off">
+
+      <div class="text-sm mt-2 text-amber-700"><span class="font-bold">Warning:</span> Changing your email address will log you out.</div>
+      <span asp-validation-for="Payload.Email"></span>
+    </label>
+
+    <label asp-for="Payload.Firstname" class="text-input mt-4">
+      <span>Firstname:</span>
+      <input asp-for="Payload.Firstname" type="text" autocomplete="off">
+
+      <span asp-validation-for="Payload.Firstname"></span>
+    </label>
+
+    <label asp-for="Payload.Lastname" class="text-input mt-4">
+      <span>Lastname:</span>
+      <input asp-for="Payload.Lastname" type="text" autocomplete="off">
+
+      <span asp-validation-for="Payload.Lastname"></span>
+    </label>
+
+    <label asp-for="Payload.Locale" class="mt-2 block">
+      <span class="block">User's initial locale:</span>
+      <select class="block w-full mt-2" asp-for="Payload.Locale">
+        <option value="">Please select a locale</option>
+        @foreach (var locale in locales)
+        {
+          if(locale == Model.Payload.Locale) {
+            <option value="@locale" selected>@locale</option>
+          } else {
+            <option value="@locale">@locale</option>
+          }
+        }
+      </select>
+
+      <span asp-validation-for="Payload.Locale" class="text-red-700 mt-2 block"></span>
+    </label>
+
+    <button type="submit" class="btn-submit w-full mt-8">Save Changes</button>
+  </form>
+
+  <div class="border shadow-md p-8 mt-8">
+    <a asp-controller="Auth" asp-action="RequestResetPassword" asp-all-route-data="@requestResetPasswordParams" class="px-4 py-2 inline-block rounded-sm text-teal-700 hover:bg-teal-700 focus:bg-teal-700 hover:text-white focus:text-white border border-teal-700 bg-white transition">Request Reset Password</a>
+  </div>
+</div>
+
+
+

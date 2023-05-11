@@ -1,0 +1,55 @@
+@model CreateProjectModel;
+@{
+  ViewData["Title"] = "Create Project";
+}
+
+<div class="mx-auto max-w-4xl mt-16">
+  <div>
+    <a asp-controller="Projects" asp-action="ViewProjects" class="page-link">Back</a>
+  </div>
+
+  <h1 class="heading-1 mt-8">Create Project</h1>
+
+  <form asp-controller="Projects" asp-action="CreatingProject" asp-route-id="@Model.Id" method="post" data-post-form class="border shadow-md p-8 mt-8">
+    <label asp-for="Payload.Name" class="text-input">
+      <span>Name:</span>
+      <input asp-for="Payload.Name" type="text" autocomplete="off">
+
+      <span asp-validation-for="Payload.Name"></span>
+    </label>
+
+    <label asp-for="Payload.Code" class="text-input mt-4">
+      <span>Code:</span>
+      <input asp-for="Payload.Code" type="text" autocomplete="off">
+
+      <span asp-validation-for="Payload.Code"></span>
+    </label>
+
+    <label asp-for="Payload.Budget" class="text-input mt-4">
+      <span>Budget <span class="text-sm">(USD)</span>:</span>
+      <div class="flex items-center mt-2">
+        <span class="text-center bg-teal-500 border border-r-0 border-black py-2 px-4 font-bold text-gray-700">$</span>
+        <input 
+          asp-for="Payload.Budget" 
+          data-val-number="Budget must be a valid number."
+          type="number" step="0.01" class="w-full block" >
+      </div>
+
+      <span asp-validation-for="Payload.Budget"></span>
+    </label>
+
+      <label asp-for="Payload.Remarks" class="text-input mt-4">
+      <span>Remarks:</span>
+      <textarea asp-for="Payload.Remarks" style="resize:none;" cols="30" rows="5" re></textarea>
+
+      <span asp-validation-for="Payload.Remarks"></span>
+    </label>
+
+    <button type="submit" class="btn-submit w-full mt-8">Create Project</button>
+  </form>
+</div>
+
+@section Scripts {
+  <script src="~/js/budgetToTwoDecimalPlaces.js"></script>
+}
+

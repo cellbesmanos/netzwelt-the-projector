@@ -1,0 +1,23 @@
+@model AddProjectMemberModel;
+
+<form id="add-project-members-form" data-url='@Url.Action("AddingProjectMember", "Projects")' data-post-form class="border shadow-md p-8 mt-4">
+  <input type="hidden" name="ProjectId" value="@Model.Id">
+  <label class="mt-2 block">
+    <span class="block">Add To Project:</span>
+    <select name="UserId" class="block w-full mt-2">
+      @{ var noEmployeesAvailable =  Model.ProjectNonMembers.Count() == 0; }
+      @if(noEmployeesAvailable) {
+        <option>No available employees.</option>
+      } else {
+        @foreach (var availableEmp in Model.ProjectNonMembers)
+            {
+              <option value="@availableEmp.Id">@availableEmp.Fullname</option>
+            }
+      }
+    </select>
+  </label>
+
+  <div class="flex justify-end">
+    <button type="submit" disabled="@noEmployeesAvailable" class="btn-submit">Add</button>
+  </div>
+</form>

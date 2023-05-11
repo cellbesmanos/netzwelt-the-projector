@@ -1,0 +1,89 @@
+@model ViewUsersListModel;
+@{
+  var sort = Model.QueryParams.Sort;
+  var roles = new List<string>() { "All", "Manager", "Employee" };
+}
+
+<form class="flex flex-wrap sm:items-center md:justify-between gap-2 sm:gap-4" data-user-list-form>
+  <div class="flex items-end md:items-center gap-2">
+    <label for="search">
+      <span class="max-sm:hidden">Search:</span>
+      <input id="search" name="search" type="text" placeholder="Enter name or email" maxlength="64" value="@(Model.QueryParams.Search)">
+    </label>
+
+    <button data-user-list-search type="button" class="px-4 py-2 inline-block rounded-sm text-teal-700 hover:bg-teal-700 focus:bg-teal-700 hover:text-white focus:text-white border border-teal-700 bg-white transition">Search</button>
+  </div>
+
+  <label for="filter">
+    <span class="max-sm:hidden">Role:</span>
+    <select name="filter" id="filter" data-user-list-filter class="w-[100px]">
+      @foreach(var role in roles) {
+        if(role == Model.QueryParams.FilterBy) {
+          <option value="@role" selected>@role</option>
+        } else {
+          <option value="@role">@role</option>
+        }
+      }
+    </select>
+  </label>
+
+  <div class="flex items-center gap-2">
+    <label for="sort">
+      <span class="text-sm">A-Z</span>
+      <input id="sort" name="sort" data-user-list-sort type="radio"  value="asc" checked="@(!string.IsNullOrEmpty(sort) && sort.Equals("asc"))" class="cursor-pointer">
+    </label>
+
+    <label for="sort">
+        <span class="text-sm">Z-A</span>
+        <input id="sort" name="sort" data-user-list-sort type="radio"  value="dsc" checked="@(!string.IsNullOrEmpty(sort) && sort.Equals("dsc"))" class="cursor-pointer">
+    </label>
+  </div> 
+
+  <label for="pageNumber" class="cursor-pointer">
+      <span>Page: </span>
+      <select id="pageNumber" name="pageNumber" data-user-list-pagination class="cursor-pointer">
+          @for(int i = 1; i <= @Model.QueryParams.TotalPages; i++) {
+              if(i == @Model.QueryParams.PageNumber) {
+                  <option value="@i" asp-for="PageNumber" selected>@i</option>
+              } else {
+                  <option value="@i" asp-for="PageNumber">@i</option>
+              }
+          }
+      </select>
+  </label>
+</form>
+
+
+<div class="overflow-x-auto">
+  <table class="data-table mt-4">
+    <thead>
+      <tr class="font-bold text-gray-500">
+        <th>Fullname</th>
+        <th>Registered Email</th>
+        <th>Role</th>
+        <th>&nbsp;</th>
+      </tr>
+    </thead>
+
+    <tbody class="mt-4">
+    @if(Model.Users.Count() == 0) {
+      <tr>
+        <td colspan="4" class="text-center text-sm">Hmm...there is nothing in here yet.</td>
+      </tr>
+    } else {
+      @foreach (var user in Model.Users)
+      {
+        if(Model.UserId.Equals(user.Id)) { continue; } 
+        else {
+        <tr class="mt-2">
+          <td>@user.Fullname</td>
+          <td>@user.Email</td>
+          <td>@user.Role</td>
+          <td><a asp-controller="Users" asp-action="ViewUserProfile" asp-route-id="@user.Id" class="page-link">View Profile</a></td>
+        </tr>
+        }
+      }
+      }
+    </tbody>
+  </table>
+</div>

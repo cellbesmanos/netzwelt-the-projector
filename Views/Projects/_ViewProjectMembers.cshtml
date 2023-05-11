@@ -1,0 +1,47 @@
+@using TheProjector.Core.Projects;
+@model ProjectMembersModel;
+
+@if(Model.CurrentUserIsOwner){
+  <form id="add-project-members-form" data-url='@Url.Action("AddProjectMember", "Projects")' data-post-form class="border shadow-md p-8 mt-4">
+    <input type="hidden" name="ProjectId" value="@Model.ProjectId">
+    <label class="mt-2 block">
+      <span class="block">Add To Project:</span>
+      <select name="UserId" class="block w-full mt-2">
+        @{ var noEmployeesAvailable =  Model.ProjectNonMembers.Count() == 0; }
+        @if(noEmployeesAvailable) {
+          <option>No available employees.</option>
+        } else {
+          @foreach (var availableEmp in Model.ProjectNonMembers)
+              {
+                <option value="@availableEmp.Id">@availableEmp.Fullname</option>
+              }
+        }
+      </select>
+    </label>
+
+    <div class="flex justify-end">
+      <button type="submit" disabled="@noEmployeesAvailable" class="btn-submit">Add</button>
+    </div>
+  </form>
+}
+
+<h2 class="mt-4 font-bold text-gray-500 text-xl border-b border-b-teal-700 pb-2">Members</h2>
+
+<div id="project-members-list-container" data-url='@Url.Action("ViewProjectMembersList", "Projects", new { Id = @Model.ProjectId })'>
+  @await Html.PartialAsync("_ViewProjectMembersList", new ViewProjectMembersListModel 
+  {
+    ProjectId = Model.ProjectId,
+    IsOwner = Model.CurrentUserIsOwner,
+    ProjectMembers = Model.ProjectMembers,
+    QueryParams = 
+        new GetProjectMembersQueryParams  
+          { 
+            Sort = "asc", 
+            PageNumber = 1,
+            PageSize = 5
+          } ,
+  })
+</div>
+
+
+
