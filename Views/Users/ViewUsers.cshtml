@@ -1,24 +1,66 @@
-@using System.Security.Claims;
-@model ViewUsersModel;
 @{
-  ViewData["Title"] = "All Users";
-  var currentUserID = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+  ViewData["Title"] = "Users";
+  var roles = new List<string>() { "Manager", "Employee" };
+  var status = new List<string>() { "Active", "Pending", "Disabled" };
 }
 
 <div class="mx-auto max-w-4xl mt-16">
   <div class="flex items-center justify-between">
     <h1 class="heading-1">Users</h1>
   
-    <a asp-controller="Auth" asp-action="CreateUser" class="page-link">Create User</a>
+    <a asp-controller="Auth" asp-action="CreateUser" class="text-sm sm:text-base page-link">Create User</a>
   </div>
 
-  <div id="users-list-container" data-url='@Url.Action("ViewUsersList", "Users")' class="mt-8">
-    @await Html.PartialAsync("_ViewUsersList", 
-    new ViewUsersListModel 
-    { UserId = currentUserID, Users =  Model.Users, QueryParams = Model.QueryParams })
+  <form 
+    hx-get='@Url.Action("ViewUsersTable", "Users")' 
+    hx-trigger="load, change, submit" 
+    hx-target="#users-table"
+    hx-include="#users-table-page-number" 
+    hx-indicator="#users-table-indicator"
+    id="users-table-form"
+    class="mt-8"
+    >
+    <div class="flex items-center gap-2 sm:gap-4">
+      <label for="search" class="grow">
+        <input id="search" name="search" type="text" placeholder="Enter name or email" maxlength="64" class="w-full text-sm sm:text-base">
+      </label>
+
+      <button hx-boost="closest form" type="submit" class="text-sm sm:text-base px-4 py-2 inline-block rounded-sm text-teal-700 hover:bg-teal-700 focus:bg-teal-700 hover:text-white focus:text-white border border-teal-700 bg-white transition">Search</button>
+    </div>
+
+    <div class="flex items-center gap-2 sm:gap-4 mt-2">
+      <label for="role">
+        <select hx-boost="closest form" name="role" id="role" class="text-sm sm:text-base">
+          <option value="" selected class="text-sm sm:text-base">Role</option>
+
+          @foreach(var role in roles) {
+            <option value="@role" class="text-sm sm:text-base">@role</option>
+          }
+        </select>
+      </label>
+
+      <label for="status">
+        <select hx-boost="closest form" name="status" id="status" class="text-sm sm:text-base">
+          <option value="" selected class="text-sm sm:text-base">Status</option>
+
+          @foreach(var s in status) {
+            <option value="@s" class="text-sm sm:text-base">@s</option>
+          }
+        </select>
+      </label>
+
+      <div class="flex items-center gap-2">
+        <select hx-boost="closest form" name="sort" id="sort" class="text-sm sm:text-base">
+          <option value="asc" selected class="text-sm sm:text-base">A-Z</option>
+          <option value="dsc" class="text-sm sm:text-base">Z-A</option>
+        </select>
+      </div> 
+    </div>
+  </form>
+
+  <div id="users-table">
+    <div id="users-table-indicator" class="flex item-center justify-center mt-4">
+      @await Html.PartialAsync("_Spinner")
+    </div>
   </div>
 </div>
-
-@section Scripts {
-  <script src="~/js/viewUsersList.js"></script>
-}

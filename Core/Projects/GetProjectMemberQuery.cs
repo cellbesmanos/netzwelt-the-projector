@@ -8,5 +8,7 @@ public class GetProjectMemberQuery
 
   public string Lastname { get; init; }
 
-  public string Fullname => $"{this.Firstname} {this.Lastname}";
+  public string Fullname { get; init; }
+
+  public string Email { get; init; }
 }

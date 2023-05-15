@@ -1,0 +1,67 @@
+@using System.Globalization;
+@model ViewProjectsTableViewModel;
+
+<ul role="list" class="divide-y divide-gray-100 mt-4 h-[550px] overflow-y-auto px-2">
+  @if(Model.Projects.Count() == 0) {
+      <li class="text-center py-5 border-t-[1px] border-t-teal-800 opacity-75">
+        Hmm...there is nothing in here yet.
+      </li>
+    } else {
+      @foreach (var project in Model.Projects)
+      {
+        <li class="flex justify-between gap-x-6 py-5 shadow-sm px-2">
+          <div class="min-w-0 max-w-[clamp(200px,_60%,_650px)]">
+            <p class="text-sm sm:text-base font-semibold leading-6 text-gray-900 truncate">@project.Name</p>
+            <p class="mt-1 text-xs sm:text-sm leading-5 text-gray-500 truncate">@project.Code</p>
+          </div>
+
+          @{
+            var culture = new CultureInfo(User.FindFirst("Locale").Value);
+          }
+
+          <div class="flex items-center justify-start gap-4">
+            <div class="max-sm:hidden sm:flex sm:flex-col sm:items-start sm:gap-1 min-w-[90px]">
+              <p class="sm:text-sm leading-5 text-gray-900">@($"${project.Budget.ToString("n2", culture)}")</p>
+            </div>
+
+            <div class="min-w-[75px] text-center">
+                <a asp-controller="Projects" asp-action="ViewProject" asp-route-id="@project.Id" class="text-xs sm:text-sm text-gray-500 underline">View Assignment</a>
+            </div>
+          </div>
+        </li>
+      }
+    }
+</ul>
+
+<div class="flex items-center justify-end gap-2 mt-4">
+  <input id="projects-table-page-number" type="hidden" name="pageNumber" value="@Model.Projects.PageNumber">
+
+  @for(int i = 1; i <= Model.Projects.TotalPages; i++) 
+  {
+    if(i == @Model.Projects.PageNumber) {
+        <button
+        hx-get='@Url.Action("ViewUsersTable", "Users")' 
+        hx-target="#users-table"
+        hx-include="#users-table-form"
+        hx-vals='{"pageNumber": "@i"}'
+        hx-indicator="#users-table-indicator"
+        type="button" 
+        class="py-1 sm:py-2 px-2 sm:px-4 rounded text-sm sm:text-base text-white bg-teal-800 shadow active"
+        >
+          @i
+        </button>
+      } else {
+        <button
+        hx-get='@Url.Action("ViewUsersTable", "Users")'
+        hx-target="#users-table"
+        hx-include="#users-table-form" 
+        hx-vals='{"pageNumber": "@i"}'
+        hx-indicator="#users-table-indicator"
+        type="button" 
+        class="py-1 sm:py-2 px-2 sm:px-4 rounded text-sm sm:text-base bg-white border shadow"
+        >
+          @i
+        </button>
+      }
+  }
+</div>

@@ -1,0 +1,19 @@
+@layer components {
+  .text-input {
+    @apply block;
+  }
+
+  .text-input > span,
+  .text-input > input {
+    @apply block;
+  }
+
+  .text-input > input,
+  .text-input > textarea {
+    @apply w-full mt-2;
+  }
+
+  .text-input > span:last-of-type {
+    @apply text-red-700 mt-2;
+  }
+}

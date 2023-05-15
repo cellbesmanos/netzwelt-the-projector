@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TheProjector.Application.Persistence;
+using TheProjector.Application.Shared;
 using TheProjector.Application.Services.Users;
 using TheProjector.Core.Shared;
 using TheProjector.Core.Projects;
@@ -48,9 +49,11 @@ public class ProjectServices : IProjectServices
     }).SingleOrDefaultAsync();
   }
 
-  public async Task<IEnumerable<GetProjectQuery>> GetUserProjectsAsync(Guid id)
+  public async Task<PaginatedList<GetProjectQuery>> GetUserProjectsAsync(Guid id, GetProjectsQueryParams queryParams, int pageNumber, int pageSize)
   {
-    return await _dbContext.Projects
+    var projects = _dbContext.Projects
+    .SearchProject(queryParams.Search)
+    .SortProjects(queryParams.Sort)
     .Join(_dbContext.ProjectAssignments, (p) => p.Id, (pa) => pa.ProjectId, (p, pa) => new
     {
       Id = p.Id,
@@ -68,34 +71,9 @@ public class ProjectServices : IProjectServices
       Code = project.Code,
       Remarks = project.Remarks,
       Budget = project.Budget
-    })
-    .ToListAsync();
-  }
+    });
 
-  public async Task<IEnumerable<GetProjectQuery>> GetUserProjectsAsync(Guid id, GetProjectsQueryParams getProjectsQueryParams)
-  {
-    return await _dbContext.Projects
-    .SearchProject(getProjectsQueryParams.Search)
-    .SortProjects(getProjectsQueryParams.Sort)
-    .Join(_dbContext.ProjectAssignments, (p) => p.Id, (pa) => pa.ProjectId, (p, pa) => new
-    {
-      Id = p.Id,
-      Name = p.Name,
-      Code = p.Code,
-      Remarks = p.Remarks,
-      Budget = p.Budget,
-      UserId = pa.UserId
-    })
-    .Where(project => project.UserId.Equals(id))
-    .Select(project => new GetProjectQuery
-    {
-      Id = project.Id,
-      Name = project.Name,
-      Code = project.Code,
-      Remarks = project.Remarks,
-      Budget = project.Budget
-    })
-    .ToListAsync();
+    return await PaginatedList<GetProjectQuery>.Build(projects, pageNumber, pageSize);
   }
 
   public async Task<GetProjectMemberQuery> GetProjectOwnerAsync(Guid id)
@@ -116,41 +94,58 @@ public class ProjectServices : IProjectServices
     {
       Id = user.Id,
       Firstname = user.Firstname,
-      Lastname = user.Lastname
+      Lastname = user.Lastname,
+      Fullname = $"{user.Firstname} {user.Lastname}"
     })
     .SingleOrDefaultAsync();
   }
 
-  public async Task<IEnumerable<GetProjectMemberQuery>> GetProjectMembersAsync(Guid id)
+  public async Task<PaginatedList<GetProjectMemberQuery>> GetProjectMembersAsync(Guid id, GetProjectMembersQueryParams queryParams, int pageNumber, int pageSize)
   {
-    return await _dbContext.Users
+    var members = _dbContext.Users
     .Include(user => user.Person)
     .Include(user => user.Status)
     .Include(user => user.Role)
-    .Where(user => user.Role.Name == "Employee" && user.Status.Name == "Active")
-    .Where((user) => _dbContext.ProjectAssignments
-      .Where(pa => pa.ProjectId.Equals(id))
-      .Select(pa => pa.UserId)
-      .Contains(user.Id))
-    .Select((user) => new GetProjectMemberQuery { Id = user.Id, Firstname = user.Person.Firstname, Lastname = user.Person.Lastname })
-    .ToListAsync();
+    .Where(user => user.Status.Name == "Active")
+    .SearchUser(queryParams.Search)
+    .FilterByRole(queryParams.Role)
+    .SortUsers(queryParams.Sort)
+    .Join(_dbContext.ProjectAssignments, user => user.Id, pa => pa.UserId, (user, pa) => new
+    {
+      Id = user.Id,
+      ProjectId = pa.ProjectId,
+      Firstname = user.Person.Firstname,
+      Lastname = user.Person.Lastname,
+      Email = user.Email
+    })
+    .Where(user => user.ProjectId.Equals(id))
+    .Select((user) => new GetProjectMemberQuery
+    { Id = user.Id, Firstname = user.Firstname, Lastname = user.Lastname, Fullname = $"{user.Firstname} {user.Lastname}", Email = user.Email });
+
+    return await PaginatedList<GetProjectMemberQuery>.Build(members, pageNumber, pageSize);
   }
 
-  public async Task<IEnumerable<GetProjectMemberQuery>> GetProjectMembersAsync(Guid id, GetProjectMembersQueryParams queryParams)
+  public async Task<PaginatedList<GetProjectMemberQuery>> GetProjectMembersAsync(Guid id, int pageNumber, int pageSize)
   {
-    return await _dbContext.Users
-    .Include(user => user.Person)
-    .Include(user => user.Status)
-    .Include(user => user.Role)
-    .SearchUser(queryParams.Search)
-    .SortUsers(queryParams.Sort)
-    .Where(user => user.Role.Name == "Employee" && user.Status.Name == "Active")
-    .Where((user) => _dbContext.ProjectAssignments
-      .Where(pa => pa.ProjectId.Equals(id))
-      .Select(pa => pa.UserId)
-      .Contains(user.Id))
-    .Select((user) => new GetProjectMemberQuery { Id = user.Id, Firstname = user.Person.Firstname, Lastname = user.Person.Lastname })
-    .ToListAsync();
+    var members = _dbContext.Users
+      .Include(user => user.Person)
+      .Include(user => user.Status)
+      .Include(user => user.Role)
+      .Where(user => user.Status.Name == "Active")
+      .SortUsers("asc")
+      .Join(_dbContext.ProjectAssignments, user => user.Id, pa => pa.UserId, (user, pa) => new
+      {
+        Id = user.Id,
+        ProjectId = pa.ProjectId,
+        Firstname = user.Person.Firstname,
+        Lastname = user.Person.Lastname,
+        Email = user.Email
+      })
+      .Where(user => user.ProjectId.Equals(id))
+      .Select((user) => new GetProjectMemberQuery
+      { Id = user.Id, Firstname = user.Firstname, Lastname = user.Lastname, Fullname = $"{user.Firstname} {user.Lastname}", Email = user.Email });
+
+    return await PaginatedList<GetProjectMemberQuery>.Build(members, pageNumber, pageSize);
   }
 
   public async Task<IEnumerable<GetProjectNonMemberQuery>> GetProjectNonMembersAsync(Guid id)

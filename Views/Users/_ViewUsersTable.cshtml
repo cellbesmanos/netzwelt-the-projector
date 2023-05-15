@@ -1,0 +1,98 @@
+@model ViewUsersTableViewModel;
+@using System.Security.Claims;
+@{
+  var currentUserID = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+}
+
+<ul role="list" class="divide-y divide-gray-100 mt-4 h-[550px] overflow-y-auto px-2">
+  @if(Model.Users.Count() == 0) {
+      <li class="text-center py-5 border-t-[1px] border-t-teal-800 opacity-75">
+        Hmm...there is nothing in here yet.
+      </li>
+    } else {
+      @foreach (var user in Model.Users)
+      {
+        <li class="flex justify-between gap-x-6 py-5 shadow-sm px-2">
+          <div class="min-w-0 max-w-[clamp(200px,_60%,_650px)]">
+            <p class="text-sm sm:text-base font-semibold leading-6 text-gray-900 truncate">@user.Fullname</p>
+            <p class="mt-1 text-xs sm:text-sm leading-5 text-gray-500 truncate">@user.Email</p>
+          </div>
+          
+          <div class="flex items-center justify-start gap-4">
+            <div class="max-sm:hidden sm:flex sm:flex-col sm:items-start sm:gap-1 min-w-[90px]">
+              <p class="sm:text-sm leading-5 text-gray-900">@user.Role</p>
+
+              <div class="flex items-center gap-1">
+                @if(user.Status == "Active") 
+                {
+                  <div class="flex items-center gap-2">
+                    <div class="flex-none rounded-full bg-emerald-500/20 p-1">
+                      <div class="h-1.5 w-1.5 rounded-full bg-emerald-500"></div>
+                    </div>
+                  </div>
+                } else if(user.Status == "Pending") 
+                {
+                  <div class="flex items-center gap-2">
+                    <div class="flex-none rounded-full bg-amber-500/20 p-1">
+                      <div class="h-1.5 w-1.5 rounded-full bg-amber-500"></div>
+                    </div>
+                  </div>
+                } else 
+                {
+                  <div class="flex items-center gap-2">
+                    <div class="flex-none rounded-full bg-gray-500/20 p-1">
+                      <div class="h-1.5 w-1.5 rounded-full bg-gray-500"></div>
+                    </div>
+                  </div>
+                }
+
+                <p class="text-xs sm:text-sm leading-5 text-gray-500 min-w-[60px]">@user.Status</p>
+              </div>
+            </div>
+
+            <div class="min-w-[75px] text-center">
+              @if(currentUserID.Equals(user.Id))
+              {
+                <span class="inline-block ml-1 font-bold px-2 py-1 text-xs rounded bg-teal-400">You</span>
+              } else {
+                <a asp-controller="Users" asp-action="ViewUserProfile" asp-route-id="@user.Id" class="text-xs sm:text-sm text-gray-500 underline">View Profile</a>
+              }
+            </div>
+          </div>
+        </li>
+      }
+    }
+</ul>
+
+<div class="flex items-center justify-end gap-2 mt-4">
+  <input id="users-table-page-number" type="hidden" name="pageNumber" value="@Model.Users.PageNumber">
+
+  @for(int i = 1; i <= Model.Users.TotalPages; i++) 
+  {
+    if(i == @Model.Users.PageNumber) {
+        <button
+        hx-get='@Url.Action("ViewUsersTable", "Users")' 
+        hx-target="#users-table"
+        hx-include="#users-table-form"
+        hx-vals='{"pageNumber": "@i"}'
+        hx-indicator="#users-table-indicator"
+        type="button" 
+        class="py-1 sm:py-2 px-2 sm:px-4 rounded text-sm sm:text-base text-white bg-teal-800 shadow active"
+        >
+          @i
+        </button>
+      } else {
+        <button
+        hx-get='@Url.Action("ViewUsersTable", "Users")'
+        hx-target="#users-table"
+        hx-include="#users-table-form" 
+        hx-vals='{"pageNumber": "@i"}'
+        hx-indicator="#users-table-indicator"
+        type="button" 
+        class="py-1 sm:py-2 px-2 sm:px-4 rounded text-sm sm:text-base bg-white border shadow"
+        >
+          @i
+        </button>
+      }
+  }
+</div>

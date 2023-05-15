@@ -1,0 +1,79 @@
+@model ViewProjectsMembersTableViewModel;
+@using System.Security.Claims;
+@{
+  var currentUserId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+  bool isOwner = currentUserId.Equals(Model.ProjectOwner.Id);
+}
+
+<ul role="list" class="divide-y divide-gray-100 mt-4 h-[550px] overflow-y-auto px-2">
+  @if(Model.Members.Count() == 0) {
+      <li class="text-center py-5 border-t-[1px] border-t-teal-800 opacity-75">
+        Hmm...there is nothing in here yet.
+      </li>
+    } else {
+      @foreach (var member in Model.Members)
+      {
+        <li class="flex items-center justify-between gap-x-6 py-5 shadow-sm px-2">
+          <div class="min-w-0 max-w-[clamp(200px,_60%,_650px)]">
+            <p class="text-sm sm:text-base font-semibold leading-6 text-gray-900 truncate">@member.Fullname</p>
+            <p class="mt-1 text-xs sm:text-sm leading-5 text-gray-500 truncate">@member.Email</p>
+          </div>
+
+          <div class="min-w-[75px] text-center">
+            @if(currentUserId.Equals(member.Id))
+            {
+              <span class="inline-block font-bold px-2 py-1 text-xs rounded bg-teal-400">You</span>
+
+              @if(isOwner) {
+                <a asp-controller="Projects" asp-action="ChangeOwnership" class="inline-block ml-1 text-xs sm:text-sm text-gray-500 underline">Change Owner</a>
+              }
+            } else {
+              @if(isOwner) {
+                <button 
+                  type="submit" 
+                  hx-post='@Url.Action("RemoveProjectMember", "Projects")' 
+                  hx-vals='{ "ProjectId": "@Model.ProjectId", "UserId": "@member.Id" }'
+                  hx-target="#project-members-controls" 
+                  class="px-4 py-2 inline-block rounded-sm text-xs sm:text-sm text-teal-700 enabled:hover:bg-teal-700 enabled:focus:bg-teal-700 enabled:hover:text-white enabled:focus:text-white border border-teal-700 bg-white transition disabled:cursor-not-allowed disabled:opacity-75">
+                  Remove
+                </button> 
+              }
+            }
+          </div>
+        </li>
+      }
+    }
+</ul>
+
+<div class="flex items-center justify-end gap-2 mt-4">
+  <input id="members-table-page-number" type="hidden" name="pageNumber" value="@Model.Members.PageNumber">
+
+  @for(int i = 1; i <= Model.Members.TotalPages; i++) 
+  {
+    if(i == @Model.Members.PageNumber) {
+        <button
+        hx-get='@Url.Action("ViewProjectMembersTable", "Projects")' 
+        hx-target="#members-table"
+        hx-include="#members-table-form"
+        hx-vals='{"pageNumber": "@i"}'
+        hx-indicator="#members-table-indicator"
+        type="button" 
+        class="py-1 sm:py-2 px-2 sm:px-4 rounded text-sm sm:text-base text-white bg-teal-800 shadow active"
+        >
+          @i
+        </button>
+      } else {
+        <button
+        hx-get='@Url.Action("ViewProjectMembersTable", "Projects")' 
+        hx-target="#members-table"
+        hx-include="#members-table-form" 
+        hx-vals='{"pageNumber": "@i"}'
+        hx-indicator="#members-table-indicator"
+        type="button" 
+        class="py-1 sm:py-2 px-2 sm:px-4 rounded text-sm sm:text-base bg-white border shadow"
+        >
+          @i
+        </button>
+      }
+  }
+</div>

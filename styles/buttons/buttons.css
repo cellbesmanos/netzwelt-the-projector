@@ -1,0 +1,9 @@
+@layer components {
+  .btn-submit {
+    @apply mt-4 block font-bold text-white rounded-sm px-4 py-2 text-center bg-teal-700 enabled:hover:text-teal-700 enabled:focus:text-teal-700 border border-teal-700 enabled:hover:bg-white enabled:focus:bg-white transition;
+  }
+
+  .btn-submit:disabled {
+    @apply opacity-75 cursor-not-allowed;
+  }
+}

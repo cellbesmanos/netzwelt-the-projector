@@ -1,6 +1,6 @@
 @model ViewUserProfileModel;
 @{
-  ViewData["Title"] = "View User Profile";
+  ViewData["Title"] = "User Profile";
 }
 
 <div class="mx-auto max-w-4xl mt-16">
@@ -9,18 +9,42 @@
   </div>
 
   <div class="flex items-center justify-between mt-8">
-    <h1 class="heading-1">User's Profile</h1>
+    <div>
+      <h1 class="text-base font-semibold leading-7 text-gray-900">My Profile</h1>
+      <p class="max-w-2xl text-sm leading-6 text-gray-500">Personal details and some configuration.</p>
+    </div>
 
-    <button data-pop-up-show="disable-user" class="px-4 py-2 inline-block rounded-sm text-teal-700 hover:bg-teal-700 focus:bg-teal-700 hover:text-white focus:text-white border border-teal-700 bg-white transition">Disable User</button>
+    <button data-pop-up-show="disable-user" class="px-4 py-2 inline-block rounded-sm text-sm sm:text-base text-teal-700 hover:bg-teal-700 focus:bg-teal-700 hover:text-white focus:text-white border border-teal-700 bg-white transition">Disable User</button>
 
     @await Html.PartialAsync("_DisableUserPopUp", new DisableUserPopupModel { Id = Model.User.Id })
   </div>
 
-  <ul class="mt-8 info-list">
-    <li><span>Fullname:</span><span class="inline-block max-w-[min(530px_,_63%)] break-words">@Model.User.Fullname</span></li>
-    <li><span>Email:</span><span class="inline-block max-w-[min(530px_,_63%)] break-words">@Model.User.Email</span></li>
-    <li><span>Role:</span>@Model.User.Role</li>
-    <li><span>Locale:</span>@Model.User.Locale</li>
-  </ul>
+  <div class="mt-6 border-t border-gray-100">
+    <dl class="divide-y divide-gray-100">
+      <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+        <dt class="text-sm font-medium leading-6 text-gray-900">Full name</dt>
+        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 truncate">@Model.User.Fullname</dd>
+      </div>
+
+      <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+        <dt class="text-sm font-medium leading-6 text-gray-900">Email</dt>
+        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 truncate">@Model.User.Email</dd>
+      </div>
+
+      <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+        <dt class="text-sm font-medium leading-6 text-gray-900">Role</dt>
+        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 truncate">@Model.User.Role</dd>
+      </div>
+
+      <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 flex items-center">
+        <dt class="text-sm font-medium leading-6 text-gray-900">
+          Locale
+          
+          <p class="max-w-2xl text-xs leading-6 text-gray-500">Affects certain formatting.</p>
+        </dt>
+        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 truncate">@Model.User.Locale</dd>
+      </div>
+    </dl>
+  </div>
 </div>
 

@@ -11,18 +11,20 @@
 {
      <div class="flex items-center gap-4">
           @if(isAdmin) {
-               <a class="block hover:underline focus:underline transition" asp-controller="Users" asp-action="ViewUsers">Users</a>
+               <a class="block hover:underline focus:underline transition text-sm sm:text-base" asp-controller="Users" asp-action="ViewUsers">Users</a>
           } else {
-               <a class="block hover:underline focus:underline transition" asp-controller="Projects" asp-action="ViewProjects">Projects</a>
+               <a class="block hover:underline focus:underline transition text-sm sm:text-base" asp-controller="Projects" asp-action="ViewProjects">Projects</a>
           }
-          <a class="block hover:underline focus:underline transition" asp-controller="Users" asp-action="ViewProfile">My Profile</a>
-          <form asp-controller="Auth" asp-action="Logout" method="post" data-post-form><button class="page-link" type="submit">Log out</button></form>
+          <a class="block hover:underline focus:underline transition text-sm sm:text-base" asp-controller="Users" asp-action="ViewProfile">My Profile</a>
+          <form asp-controller="Auth" asp-action="Logout" method="post" data-post-form>
+               <button class="text-sm sm:text-base page-link" type="submit">Log out</button>
+          </form>
      </div>
 }
 else
 {
      <div>
-          <a class="page-link" asp-controller="Auth" asp-action="Login">Log in</a>
+          <a class="text-sm sm:text-base page-link" asp-controller="Auth" asp-action="Login">Log in</a>
      </div>
 }
 </nav>

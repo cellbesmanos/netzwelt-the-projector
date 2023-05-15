@@ -18,10 +18,17 @@ public static class UserServicesExtensions
     return users.Where(user => (user.Person.Firstname.Contains(search) || user.Person.Lastname.Contains(search) || user.Email.Contains(search)));
   }
 
-  public static IQueryable<User> FilterUser(this IQueryable<User> users, string filter)
+  public static IQueryable<User> FilterByRole(this IQueryable<User> users, string role)
   {
-    if (string.IsNullOrEmpty(filter) || filter == "All") return users;
+    if (string.IsNullOrEmpty(role)) return users;
 
-    return users.Where(user => user.Role.Name == filter);
+    return users.Where(user => user.Role.Name == role);
+  }
+
+  public static IQueryable<User> FilterByStatus(this IQueryable<User> users, string status)
+  {
+    if (string.IsNullOrEmpty(status)) return users;
+
+    return users.Where(user => user.Status.Name == status);
   }
 }

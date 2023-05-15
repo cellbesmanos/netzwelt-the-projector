@@ -1,5 +1,5 @@
 @using System.Security.Claims;
-@model ViewProjectsModel;
+@model ViewProjectsViewModel;
 @{
   ViewData["Title"] = "Projects";
   
@@ -12,18 +12,40 @@
 
   @if(isManager) {
     <div class="flex items-center gap-4">
-      <a asp-controller="Projects" asp-action="CreateProject" class="page-link">Create New Project</a>
-      <a asp-controller="Auth" asp-action="CreateUser" class="page-link">Create User</a>
+      <a asp-controller="Projects" asp-action="CreateProject" class="text-sm sm:text-base page-link">Create New Project</a>
+      <a asp-controller="Auth" asp-action="CreateUser" class="text-sm sm:text-base page-link">Create User</a>
     </div>
   }
   </div>
 
-  <div id="projects-list-container" data-url='@Url.Action("ViewProjectsList", "Projects")' class="mt-8">
-    @await Html.PartialAsync("_ViewProjectsList", new ViewProjectsListModel 
-    { Projects =  Model.Projects, QueryParams = Model.QueryParams })
+  <form
+    hx-get='@Url.Action("ViewProjectsTable", "Projects")' 
+    hx-trigger="load, change, submit" 
+    hx-target="#projects-table"
+    hx-include="#project-table-page-number" 
+    hx-indicator="#projects-table-indicator"
+    id="projects-table-form"
+    class="mt-8">
+    <div class="flex items-center gap-2 sm:gap-4">
+      <label for="search" class="grow">
+        <input id="search" name="search" type="text" placeholder="Enter name or code" maxlength="64" class="w-full text-sm sm:text-base">
+      </label>
+
+      <button hx-boost="closest form" type="submit" class="text-sm sm:text-base px-4 py-2 inline-block rounded-sm text-teal-700 hover:bg-teal-700 focus:bg-teal-700 hover:text-white focus:text-white border border-teal-700 bg-white transition">Search</button>
+    </div>
+
+    <div class="mt-2">
+      <select hx-boost="closest form" name="sort" id="sort" class="text-sm sm:text-base">
+        <option value="asc" selected class="text-sm sm:text-base">A-Z</option>
+        <option value="dsc" class="text-sm sm:text-base">Z-A</option>
+      </select>
+    </div> 
+  </form>
+
+  <div id="projects-table" class="mt-8">
+    <div id="projects-table-indicator" class="flex item-center justify-center mt-4">
+      @await Html.PartialAsync("_Spinner")
+    </div>
   </div>
 </div>
 
-@section Scripts {
-  <script src="~/js/viewProjectsList.js"></script>
-}

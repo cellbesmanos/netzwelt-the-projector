@@ -1,0 +1,97 @@
+@model ViewProjectMembersControlsViewModel;
+@using System.Security.Claims;
+@{
+  var roles = new List<string>() { "Manager", "Employee" };
+  var cm = Model.CommandResult;
+}
+
+@if(cm != null && !cm.IsSuccessful) {
+  <div class="text-center bg-red-400 font-bold py-4 px-2">
+    That didn't load right.
+  </div>
+} else {
+<div class="border shadow-md p-8 mt-4">
+  @{
+    bool isOwner = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value).Equals(Model?.ProjectOwner.Id);
+  }
+  
+  @if(isOwner)
+  {
+    <form 
+      hx-post='@Url.Action("AddProjectMember", "Projects")' 
+      hx-target="#project-members-controls" 
+      class="flex items-end gap-2 sm:gap-4">    
+      <input type="hidden" name="projectId" value="@Model.ProjectId">
+
+      <label class="mt-2 block grow">
+        <span class="block text-sm sm:text-base">New Member</span>
+        <select name="userId" class="text-sm sm:text-base block w-full mt-2">
+          @{ var noEmployeesAvailable =  Model.NonMembers.Count() == 0; }
+
+          @if(noEmployeesAvailable) {
+            <option>No available employees.</option>
+          } else {
+            @foreach (var nonMember in Model.NonMembers)
+                {
+                  <option value="@nonMember.Id">@nonMember.Fullname</option>
+                }
+          }
+          <option value="df990101-cc3c-4961-8bbd-ea40c132e1e2">Error</option>
+        </select>
+      </label>
+
+      <button type="submit" disabled="@noEmployeesAvailable" class="btn-submit text-sm sm:text-base">Add</button>
+    </form>
+  }
+  <div class="mt-4">
+    <h2 class="mt-2 text-xs sm:text-sm">Members</h2>
+
+    <form
+      hx-get='@Url.Action("ViewProjectMembersTable", "Projects")' 
+      hx-trigger="change, submit" 
+      hx-target="#members-table"
+      hx-include="#members-table-page-number" 
+      hx-indicator="#members-table-indicator"
+      id="members-table-form"
+      class="mt-2"
+    >
+      <div class="flex items-center gap-2 sm:gap-4">
+        <input type="hidden" name="projectId" value="@Model.ProjectId">
+
+        <label for="search" class="grow">
+          <input id="search" name="search" type="text" placeholder="Enter name or email" maxlength="64" class="w-full text-sm sm:text-base">
+        </label>
+
+        <button hx-boost="closest form" type="submit" class="text-sm sm:text-base px-4 py-2 inline-block rounded-sm text-teal-700 hover:bg-teal-700 focus:bg-teal-700 hover:text-white focus:text-white border border-teal-700 bg-white transition">Search</button>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-4 mt-2">
+        <label for="role">
+          <select hx-boost="closest form" name="role" id="role" class="text-sm sm:text-base">
+            <option value="" selected class="text-sm sm:text-base">Role</option>
+
+            @foreach(var role in roles) {
+              <option value="@role" class="text-sm sm:text-base">@role</option>
+            }
+          </select>
+        </label>
+
+        <div class="flex items-center gap-2">
+          <select hx-boost="closest form" name="sort" id="sort" class="text-sm sm:text-base">
+            <option value="asc" selected class="text-sm sm:text-base">A-Z</option>
+            <option value="dsc" class="text-sm sm:text-base">Z-A</option>
+          </select>
+        </div> 
+      </div>
+    </form>
+  </div>
+
+  <div id="members-table">
+    @await Html.PartialAsync("_ViewProjectMembersTable", Model.MembersTableModel)
+  </div>
+</div>
+}
+
+
+
+

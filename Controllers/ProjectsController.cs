@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using TheProjector.Application.Shared;
 using TheProjector.Application.Filters;
 using TheProjector.Models.Projects;
 using TheProjector.Core.Users;
@@ -25,124 +24,74 @@ public class ProjectsController : Controller
   [Authorize(Roles = "Manager,Employee")]
   [HttpGet]
   [Route("/projects")]
-  public async Task<IActionResult> ViewProjects()
+  public IActionResult ViewProjects()
   {
-    var currentUserID = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-    var projects = await _projectServices.GetUserProjectsAsync(currentUserID);
-    var projectsPagedList = PagedList<GetProjectQuery>.ToPagedList(projects, 1, 10);
-    var queryParams = new GetProjectsQueryParams { Sort = "asc", Search = "", PageSize = 10 };
-    queryParams.TotalPages = projectsPagedList.TotalPages;
-    queryParams.PageNumber = projectsPagedList.CurrentPage;
-
-    return View(new ViewProjectsModel { Projects = projectsPagedList, QueryParams = queryParams });
+    return View();
   }
 
   [Authorize(Roles = "Manager,Employee")]
   [HttpGet]
-  public async Task<IActionResult> ViewProjectsList(GetProjectsQueryParams queryParams)
+  public async Task<IActionResult> ViewProjectsTable(
+    [FromQuery] GetProjectsQueryParams queryParams,
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] int pageSize = 10)
   {
     var currentUserID = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-    var projects = await _projectServices.GetUserProjectsAsync(currentUserID, queryParams);
-    var projectsPagedList = PagedList<GetProjectQuery>.ToPagedList(projects, queryParams.PageNumber, queryParams.PageSize);
+    var vm = await new ViewProjectsTableViewModel(_projectServices)
+      .Build(currentUserID, queryParams, pageNumber, pageSize);
 
-    queryParams.TotalPages = projectsPagedList.TotalPages;
-    queryParams.PageNumber = projectsPagedList.CurrentPage;
-
-    return PartialView("_ViewProjectsList", new ViewProjectsListModel
-    {
-      QueryParams = queryParams,
-      Projects = projectsPagedList
-    });
+    return PartialView("_ViewProjectsTable", vm);
   }
-
 
   [Authorize(Roles = "Manager,Employee")]
   [HttpGet]
   [Route("/projects/{id:guid}/view")]
-  public async Task<IActionResult> ViewOneProject([FromRoute] Guid id)
+  public async Task<IActionResult> ViewProject([FromRoute] Guid id)
   {
-    var project = await _projectServices.GetOneWithMembersAsync(id);
+    var project = await _projectServices.GetOneAsync(id);
     if (project == null) return View("NotFound");
 
-    var projectOwner = await _projectServices.GetProjectOwnerAsync(id);
-    var projectNonMembers = await _projectServices.GetProjectNonMembersAsync(id);
+    var vm = await new ViewProjectViewModel(_projectServices)
+      .Build(project);
 
-    return View(new ViewOneProjectModel
-    {
-      Owner = projectOwner,
-      Project = project,
-      ProjectNonMembers = projectNonMembers
-    });
-  }
-
-  [Authorize(Roles = "Manager,Employee")]
-  [HttpGet]
-  public async Task<IActionResult> ViewProjectMembers([FromRoute] Guid id, [FromQuery] GetProjectMembersQueryParams queryParams)
-  {
-    var currentUserID = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-    var projectOwner = await _projectServices.GetProjectOwnerAsync(id);
-    bool isOwner = currentUserID.Equals(projectOwner.Id);
-
-    var members = (await _projectServices.GetProjectMembersAsync(currentUserID, queryParams)).Where(m => m.Id.Equals(projectOwner.Id));
-    var projectMembersPagedList = PagedList<GetProjectMemberQuery>.ToPagedList(members, queryParams.PageNumber, queryParams.PageSize);
-    queryParams.TotalPages = projectMembersPagedList.TotalPages;
-    queryParams.PageNumber = projectMembersPagedList.CurrentPage;
-
-    return PartialView("_ViewProjectMembers", new ProjectMembersModel
-    {
-      ProjectId = id,
-      CurrentUserIsOwner = isOwner,
-      QueryParams = queryParams,
-      ProjectMembers = projectMembersPagedList
-    });
-  }
-
-  [Authorize(Roles = "Manager,Employee")]
-  [HttpGet]
-  public async Task<IActionResult> ViewProjectMembersList([FromRoute] Guid id, [FromQuery] GetProjectMembersQueryParams queryParams)
-  {
-    var currentUserID = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-    var projectOwner = await _projectServices.GetProjectOwnerAsync(id);
-    bool isOwner = currentUserID.Equals(projectOwner.Id);
-
-    var members = (await _projectServices.GetProjectMembersAsync(id, queryParams)).Where(m => !m.Id.Equals(projectOwner.Id));
-    var projectMembersPagedList = PagedList<GetProjectMemberQuery>.ToPagedList(members, queryParams.PageNumber, queryParams.PageSize);
-    queryParams.TotalPages = projectMembersPagedList.TotalPages;
-    queryParams.PageNumber = projectMembersPagedList.CurrentPage;
-
-    return PartialView("_ViewProjectMembersList", new ViewProjectMembersListModel
-    {
-      ProjectId = id,
-      IsOwner = isOwner,
-      QueryParams = queryParams,
-      ProjectMembers = projectMembersPagedList
-    });
+    return View(vm);
   }
 
   [Authorize(Roles = "Manager")]
   [HttpPost]
-  public async Task<IActionResult> AddProjectMember([FromBody] AddProjectMemberCommand payload)
+  public async Task<IActionResult> AddProjectMember([FromForm] AddProjectMemberCommand payload)
   {
     var commandResult = await _projectServices.AddProjectMember(payload.ProjectId, payload.UserId);
+    var vm = await new ViewProjectMembersControlsViewModel(_projectServices)
+        .Build(payload.ProjectId, commandResult);
 
-    var currentUserID = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-    var vm = await new ProjectDetailsViewModel(_userServices, _projectServices, currentUserID)
-      .CreateView(commandResult, payload);
-
-    return PartialView("_ViewProjectMembers", vm);
+    return PartialView("_ViewProjectMembersControls", vm);
   }
 
   [Authorize(Roles = "Manager")]
   [HttpPost]
-  public async Task<IActionResult> RemoveProjectMember([FromBody] RemoveProjectMemberCommand payload)
+  public async Task<IActionResult> RemoveProjectMember([FromForm] RemoveProjectMemberCommand payload)
   {
     var commandResult = await _projectServices.RemoveProjectMember(payload.ProjectId, payload.UserId);
+    var vm = await new ViewProjectMembersControlsViewModel(_projectServices)
+      .Build(payload.ProjectId, commandResult);
 
-    var currentUserID = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-    var vm = await new ProjectDetailsViewModel(_userServices, _projectServices, currentUserID)
-      .CreateView(commandResult, payload);
+    return PartialView("_ViewProjectMembersControls", vm);
+  }
 
-    return PartialView("_ViewProjectMembers", vm);
+  [Authorize(Roles = "Manager,Employee")]
+  [HttpGet]
+  public async Task<IActionResult> ViewProjectMembersTable(
+    [FromQuery] Guid projectId,
+    [FromQuery] GetProjectMembersQueryParams queryParams,
+    [FromQuery] int pageNumber,
+    [FromQuery] int pageSize = 10
+  )
+  {
+    var vm = await new ViewProjectsMembersTableViewModel(_projectServices)
+      .Build(projectId, queryParams, pageNumber, pageSize);
+
+    return PartialView("_ViewProjectMembersTable", vm);
   }
 
   [Authorize(Roles = "Manager")]
@@ -151,7 +100,7 @@ public class ProjectsController : Controller
   public async Task<IActionResult> CreateProject()
   {
     var user = await _userServices.GetUserByEmailAsync(User.FindFirst(ClaimTypes.Email).Value);
-    if (user == null) return RedirectToAction("NotFound", "Errors");
+    if (user == null) return View("NotFound");
 
     return View(new CreateProjectModel { Id = user.Id });
   }
@@ -163,16 +112,7 @@ public class ProjectsController : Controller
     if (!ModelState.IsValid) return View(new CreateProjectModel { Id = id, Payload = payload });
 
     var commandResult = await _projectServices.CreateAsync(id, payload);
-    if (!commandResult.IsSuccessful)
-    {
-      commandResult.Errors.ForEach(err => ModelState.AddModelError(err.FieldName, err.ErrorMessage));
-
-      return View("CreateProject", new CreateProjectModel
-      {
-        Id = id,
-        Payload = payload
-      });
-    }
+    if (!commandResult.IsSuccessful) return this.ViewWithErrors("CreateProject", new CreateProjectModel { Id = id, Payload = payload }, commandResult);
 
     return RedirectToAction("ViewProjects");
   }
@@ -183,7 +123,7 @@ public class ProjectsController : Controller
   public async Task<IActionResult> EditProject([FromRoute] Guid id)
   {
     var project = await _projectServices.GetOneAsync(id);
-    if (project == null) return RedirectToAction("NotFound", "Errors");
+    if (project == null) return View("NotFound");
 
     var editProjectCommand = new EditProjectCommand
     {
@@ -203,12 +143,7 @@ public class ProjectsController : Controller
     if (!ModelState.IsValid) return View("EditProject", new EditProjectModel { Id = id, Payload = payload });
 
     var commandResult = await _projectServices.EditAsync(id, payload);
-    if (!commandResult.IsSuccessful)
-    {
-      commandResult.Errors.ForEach(err => ModelState.AddModelError(err.FieldName, err.ErrorMessage));
-
-      return View("EditProject", new EditProjectModel { Id = id, Payload = payload });
-    }
+    if (!commandResult.IsSuccessful) return this.ViewWithErrors("EditProject", new EditProjectModel { Id = id, Payload = payload }, commandResult);
 
     return RedirectToAction("ViewOneProject", new { Id = id });
   }

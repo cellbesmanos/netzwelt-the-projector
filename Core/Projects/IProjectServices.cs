@@ -1,13 +1,12 @@
 
+using TheProjector.Application.Shared;
 using TheProjector.Core.Shared;
 
 namespace TheProjector.Core.Projects;
 
 public interface IProjectServices
 {
-  Task<IEnumerable<GetProjectQuery>> GetUserProjectsAsync(Guid id);
-
-  Task<IEnumerable<GetProjectQuery>> GetUserProjectsAsync(Guid id, GetProjectsQueryParams queryParams);
+  Task<PaginatedList<GetProjectQuery>> GetUserProjectsAsync(Guid id, GetProjectsQueryParams queryParams, int pageNumber, int pageSize);
 
   Task<GetProjectQuery> GetOneAsync(Guid id);
 
@@ -15,9 +14,9 @@ public interface IProjectServices
 
   Task<GetProjectMemberQuery> GetProjectOwnerAsync(Guid id);
 
-  Task<IEnumerable<GetProjectMemberQuery>> GetProjectMembersAsync(Guid id);
+  Task<PaginatedList<GetProjectMemberQuery>> GetProjectMembersAsync(Guid id, GetProjectMembersQueryParams queryParams, int pageNumber, int pageSize);
 
-  Task<IEnumerable<GetProjectMemberQuery>> GetProjectMembersAsync(Guid id, GetProjectMembersQueryParams queryParams);
+  Task<PaginatedList<GetProjectMemberQuery>> GetProjectMembersAsync(Guid id, int pageNumber, int pageSize);
 
   Task<IEnumerable<GetProjectNonMemberQuery>> GetProjectNonMembersAsync(Guid id);
 

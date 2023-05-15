@@ -2,7 +2,6 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using TheProjector.Application.Shared;
 using TheProjector.Application.Filters;
 using TheProjector.Core.Users;
 using TheProjector.Models.Auth;
@@ -35,37 +34,23 @@ public class UsersController : Controller
   [ValidateStatusFilter]
   [HttpGet]
   [Route("/users")]
-  public async Task<IActionResult> ViewUsers()
+  public IActionResult ViewUsers()
   {
-    var currentUserID = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-    var users = await _userServices.GetAllUsers();
-    var usersPagedList = PagedList<GetUserQuery>.ToPagedList(users.Where(user => !user.Id.Equals(currentUserID)), 1, 10);
-    var queryParams = new GetUsersQueryParams { Sort = "asc", Search = "", PageSize = 10, FilterBy = "" };
-    queryParams.TotalPages = usersPagedList.TotalPages;
-    queryParams.PageNumber = usersPagedList.CurrentPage;
-
-    return View(new ViewUsersModel { Users = usersPagedList, QueryParams = queryParams });
+    return View();
   }
 
   [Authorize(Roles = "Administrator")]
   [ValidateStatusFilter]
   [HttpGet]
-  public async Task<IActionResult> ViewUsersList([FromQuery] GetUsersQueryParams queryParams)
+  public async Task<IActionResult> ViewUsersTable(
+    [FromQuery] GetUsersQueryParams queryParams,
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] int pageSize = 10)
   {
-    var currentUserID = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-    var users = await _userServices.GetAllUsers(queryParams);
-    var usersPagedList = PagedList<GetUserQuery>
-    .ToPagedList(users.Where(user => !user.Id.Equals(currentUserID)), queryParams.PageNumber, queryParams.PageSize);
-    queryParams.TotalPages = usersPagedList.TotalPages;
-    queryParams.PageNumber = usersPagedList.CurrentPage;
+    var vm = await new ViewUsersTableViewModel(_userServices)
+      .Build(queryParams, pageNumber, pageSize);
 
-    return PartialView("_ViewUsersList",
-    new ViewUsersListModel
-    {
-      UserId = currentUserID,
-      QueryParams = queryParams,
-      Users = usersPagedList
-    });
+    return PartialView("_ViewUsersTable", vm);
   }
 
   [Authorize(Roles = "Administrator")]
@@ -85,7 +70,9 @@ public class UsersController : Controller
   [Route("/profile")]
   public async Task<IActionResult> ViewProfile()
   {
-    var user = await _userServices.GetUserByIdAsync(Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value));
+    var user = await _userServices
+      .GetUserByIdAsync(Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value));
+
     return View(new ViewProfileModel { User = user });
   }
 
@@ -114,27 +101,12 @@ public class UsersController : Controller
   [ValidateStatusFilter]
   public async Task<IActionResult> EditingProfile([FromRoute] Guid id, [FromForm] EditProfileCommand payload)
   {
-    if (!ModelState.IsValid) return View("EditProfile", new EditProfileModel
-    {
-      Id = id,
-      Payload = payload
-    });
+    if (!ModelState.IsValid) return View("EditProfile", new EditProfileModel { Id = id, Payload = payload });
 
     var commandResult = await _userServices.Update(id, payload);
-
-    if (!commandResult.IsSuccessful)
-    {
-      commandResult.Errors.ForEach(err => ModelState.AddModelError(err.FieldName, err.ErrorMessage));
-
-      return View("EditProfile", new EditProfileModel
-      {
-        Id = id,
-        Payload = payload
-      });
-    }
+    if (!commandResult.IsSuccessful) return this.ViewWithErrors("EditProfile", new EditProfileModel { Id = id, Payload = payload }, commandResult);
 
     var editCommandResult = (EditProfileCommandResult)commandResult.Data;
-
     if (editCommandResult.Logout)
     {
       await HttpContext.SignOutAsync();

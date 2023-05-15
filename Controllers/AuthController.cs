@@ -52,7 +52,8 @@ public class AuthController : Controller
     var commandResult = await _authManager.SignUpAsync(payload);
     if (!commandResult.IsSuccessful)
     {
-      commandResult.Errors.ForEach(err => ModelState.AddModelError(err.FieldName, err.ErrorMessage));
+      commandResult.Errors
+        .ForEach(err => ModelState.AddModelError(err.FieldName, err.ErrorMessage));
 
       return View("CreateUser", new CreateUserModel
       {
@@ -73,7 +74,7 @@ public class AuthController : Controller
   [Route("/auth/login")]
   public IActionResult Login()
   {
-    if (User != null && User.Identity.IsAuthenticated) return RedirectToAction("Index", "Projects");
+    if (User != null && User.Identity.IsAuthenticated) return RedirectToAction("Home", "Users");
 
     return View();
   }
@@ -87,7 +88,8 @@ public class AuthController : Controller
     var commandResult = await _authManager.LoginAsync(payload);
     if (!commandResult.IsSuccessful)
     {
-      commandResult.Errors.ForEach((err) => ModelState.AddModelError(err.FieldName, err.ErrorMessage));
+      commandResult.Errors
+      .ForEach((err) => ModelState.AddModelError(err.FieldName, err.ErrorMessage));
 
       return View("Login");
     }
@@ -113,7 +115,7 @@ public class AuthController : Controller
   public async Task<IActionResult> ActivateAccount()
   {
     var user = await _userServices.GetUserByIdAsync(Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value));
-    if (user == null) return RedirectToAction("NotFound", "Errors");
+    if (user == null) return View("NotFound");
 
     if (user.Status.ToLower() != "pending") return RedirectToAction("Index", "Projects");
 
@@ -128,7 +130,8 @@ public class AuthController : Controller
     var commandResult = await _authManager.ActivateAccountAsync(id, payload);
     if (!commandResult.IsSuccessful)
     {
-      commandResult.Errors.ForEach(err => ModelState.AddModelError(err.FieldName, err.ErrorMessage));
+      commandResult.Errors
+      .ForEach(err => ModelState.AddModelError(err.FieldName, err.ErrorMessage));
 
       return View("ActivateAccount", new ActivateAccountModel { Id = id });
     }
@@ -166,7 +169,7 @@ public class AuthController : Controller
   public async Task<IActionResult> ChangePassword([FromQuery] string token)
   {
     var commandResult = await _authManager.CheckPasswordResetTokenValidityAsync(token);
-    if (!commandResult.IsSuccessful) return RedirectToAction("NotFound", "Errors");
+    if (!commandResult.IsSuccessful) return View("NotFound");
 
     return View(new ChangePasswordModel { Token = token });
   }
@@ -180,7 +183,8 @@ public class AuthController : Controller
     var commandResult = await _authManager.ChangePasswordAsync(id, payload);
     if (!commandResult.IsSuccessful)
     {
-      commandResult.Errors.ForEach(err => ModelState.AddModelError(err.FieldName, err.ErrorMessage));
+      commandResult.Errors
+      .ForEach(err => ModelState.AddModelError(err.FieldName, err.ErrorMessage));
       return View("ChangePassword", new ChangePasswordModel { Token = id });
     }
 
@@ -195,7 +199,7 @@ public class AuthController : Controller
   public async Task<IActionResult> DisableUser([FromRoute] Guid id)
   {
     var user = await _userServices.GetUserByIdAsync(id);
-    if (user == null) return RedirectToAction("NotFound", "Errors");
+    if (user == null) return View("NotFound");
 
     await _authManager.DisableAccount(id);
 

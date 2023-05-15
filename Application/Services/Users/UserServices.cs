@@ -9,7 +9,6 @@ namespace TheProjector.Application.Services.Users;
 public class UserServices : IUserServices
 {
   private readonly DatabaseContext _dbContext;
-  private readonly ISmtpManager _smtpManager;
 
   public UserServices(DatabaseContext dbContext)
   {
@@ -26,14 +25,13 @@ public class UserServices : IUserServices
     return await query.Where(role => role.Name != "Administrator" && role.Name != "Manager").ToListAsync();
   }
 
-  public async Task<IEnumerable<GetUserQuery>> GetAllUsers()
+  public async Task<PaginatedList<GetUserQuery>> GetUsers(int pageNumber, int pageSize)
   {
-    return await _dbContext.Users
+    var users = _dbContext.Users
     .Include(user => user.Person)
     .Include(user => user.Status)
     .Include(user => user.Role)
-    .Where(user => user.Status.Name == "Active")
-    .OrderBy(user => user.Person.Firstname)
+    .OrderBy(user => user.Person.Firstname + " " + user.Person.Lastname)
     .Select(user => new GetUserQuery
     {
       Id = user.Id,
@@ -42,20 +40,21 @@ public class UserServices : IUserServices
       Lastname = user.Person.Lastname,
       Role = user.Role.Name,
       Status = user.Status.Name
-    })
-    .ToListAsync();
+    });
+
+    return await PaginatedList<GetUserQuery>.Build(users, pageNumber, pageSize);
   }
 
-  public async Task<IEnumerable<GetUserQuery>> GetAllUsers(GetUsersQueryParams getUsersQueryParams)
+  public async Task<PaginatedList<GetUserQuery>> GetUsers(GetUsersQueryParams queryParams, int pageNumber, int pageSize)
   {
-    return await _dbContext.Users
+    var users = _dbContext.Users
     .Include(user => user.Person)
     .Include(user => user.Status)
     .Include(user => user.Role)
-    .Where(user => user.Status.Name == "Active")
-    .SearchUser(getUsersQueryParams.Search)
-    .FilterUser(getUsersQueryParams.FilterBy)
-    .SortUsers(getUsersQueryParams.Sort)
+    .SearchUser(queryParams.Search)
+    .FilterByRole(queryParams.Role)
+    .FilterByStatus(queryParams.Status)
+    .SortUsers(queryParams.Sort)
     .Select(user => new GetUserQuery
     {
       Id = user.Id,
@@ -63,12 +62,37 @@ public class UserServices : IUserServices
       Firstname = user.Person.Firstname,
       Lastname = user.Person.Lastname,
       Role = user.Role.Name,
-      Status = user.Status.Name,
-    })
-    .ToListAsync();
+      Status = user.Status.Name
+    });
+
+    return await PaginatedList<GetUserQuery>.Build(users, pageNumber, pageSize);
   }
 
-  public async Task<GetUserQuery> GetUserByIdAsync(Guid id)
+  public async Task<PaginatedList<GetUserQuery>> GetActiveUsersExcept(GetUsersQueryParams queryParams, int pageNumber, int pageSize, params Guid[] ids)
+  {
+    var users = _dbContext.Users
+    .Include(user => user.Person)
+    .Include(user => user.Status)
+    .Include(user => user.Role)
+    .Where(user => !ids.Contains(user.Id))
+    .SearchUser(queryParams.Search)
+    .FilterByRole(queryParams.Role)
+    .FilterByStatus(queryParams.Status)
+    .SortUsers(queryParams.Sort)
+    .Select(user => new GetUserQuery
+    {
+      Id = user.Id,
+      Email = user.Email,
+      Firstname = user.Person.Firstname,
+      Lastname = user.Person.Lastname,
+      Role = user.Role.Name,
+      Status = user.Status.Name
+    });
+
+    return await PaginatedList<GetUserQuery>.Build(users, pageNumber, pageSize);
+  }
+
+  public async Task<GetUserQuery?> GetUserByIdAsync(Guid id)
   {
     return await _dbContext.Users
     .Include(user => user.Person)
@@ -88,7 +112,7 @@ public class UserServices : IUserServices
     .SingleOrDefaultAsync();
   }
 
-  public async Task<GetUserQuery> GetUserByEmailAsync(string email)
+  public async Task<GetUserQuery?> GetUserByEmailAsync(string email)
   {
     return await _dbContext.Users
     .Include(user => user.Person)
@@ -111,15 +135,14 @@ public class UserServices : IUserServices
   public async Task<CommandResult> Update(Guid id, EditProfileCommand payload)
   {
     var userWithSameEmail = await _dbContext.Users.Where(user => user.Email == payload.Email).SingleOrDefaultAsync();
-    if (userWithSameEmail != null && !userWithSameEmail.Id.Equals(id)) return CommandResult.Error("Email already exists.", "EditProfile.Email");
+    if (userWithSameEmail != null && !userWithSameEmail.Id.Equals(id)) return CommandResult.Error("Email already exists.", "Payload.Email");
 
     var user = await _dbContext.Users.Include(user => user.Person).Where(user => user.Id.Equals(id)).SingleOrDefaultAsync();
     if (user == null) return CommandResult.Error("Not Found", "User");
 
-    // logout if prev email and current email is different
     var logoutUser = user.Email.ToLower() != payload.Email.ToLower();
-    user.Person.Firstname = payload.Firstname.ToLower();
-    user.Person.Lastname = payload.Lastname.ToLower();
+    user.Person.Firstname = payload.Firstname;
+    user.Person.Lastname = payload.Lastname;
     user.Person.Locale = payload.Locale;
     user.Email = payload.Email;
     await _dbContext.SaveChangesAsync();

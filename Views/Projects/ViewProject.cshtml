@@ -1,0 +1,111 @@
+@using System.Globalization;
+@using System.Security.Claims;
+@model ViewProjectViewModel;
+@{
+  ViewData["Title"] = "View Project";
+
+  bool isOwner = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value).Equals(Model.ProjectOwner.Id);
+}
+
+<div class="mx-auto max-w-4xl mt-16">
+  <div>
+    <a asp-controller="Users" asp-action="Home" class="page-link">Back</a>
+  </div>
+
+  <div class="flex items-center justify-between mt-8">
+    <div>
+      <h1 class="text-base font-semibold leading-7 text-gray-900">View Assignments</h1>
+      <p class="max-w-2xl text-sm leading-6 text-gray-500">Project details and members.</p>
+    </div>
+
+    @if(isOwner)
+    {
+      <div class="flex items-center gap-4">
+        <a asp-controller="Projects" asp-action="EditProject" asp-route-id="@Model.Project.Id" class="text-sm sm:text-base page-link">
+          Edit
+        </a>
+
+        <button data-pop-up-show="delete-project" class="text-sm sm:text-base px-4 py-2 inline-block rounded-sm text-teal-700 hover:bg-teal-700 focus:bg-teal-700 hover:text-white focus:text-white border border-teal-700 bg-white transition">
+          Delete
+        </button>
+
+        @await Html.PartialAsync("_DeleteProjectPopup", new DeleteProjectPopupModel { Id = Model.Project.Id })
+      </div>
+    }
+  </div>
+
+  <div class="mt-6 border-t border-gray-100">
+    <dl class="divide-y divide-gray-100">
+      <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+        <dt class="text-sm font-medium leading-6 text-gray-900">
+          Name
+        </dt>
+
+        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 truncate">
+          @Model.Project.Name
+        </dd>
+      </div>
+
+      <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+        <dt class="text-sm font-medium leading-6 text-gray-900">
+          Code
+        </dt>
+
+        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 truncate">
+          @Model.Project.Code
+        </dd>
+      </div>
+
+      <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+        <dt class="text-sm font-medium leading-6 text-gray-900">
+          Budget
+        </dt>
+
+        @{
+          var culture = new CultureInfo(User.FindFirst("Locale").Value);
+        }
+
+        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 truncate">
+          @($"${Model.Project.Budget.ToString("n2", culture)}") 
+        </dd>
+      </div>
+
+      <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 flex items-center">
+        <dt class="text-sm font-medium leading-6 text-gray-900">
+          Owned By    
+        </dt>
+
+        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 truncate">
+          @if(isOwner) {
+            <span class="inline-block ml-2 font-bold px-2 py-1 sm:ml-0 text-xs rounded bg-teal-400">
+              You
+            </span>
+          } else {
+            @Model.ProjectOwner.Fullname
+          }
+        </dd>
+      </div>
+
+      <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+        <dt class="text-sm font-medium leading-6 text-gray-900">
+          Remarks
+        </dt>
+
+        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 truncate">
+          @Model.Project.Remarks
+        </dd>
+      </div>
+    </dl>
+  </div>
+
+  <div id="project-members-controls">
+    @await Html.PartialAsync("_ViewProjectMembersControls", Model.ProjectMembersControlsModel)
+  </div>
+</div>
+
+
+
+
+
+
+
